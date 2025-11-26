@@ -8,14 +8,15 @@ namespace screenSavingCreator
     public partial class ScreensaverForm : Form
     {
         private Image img;
-        private float zoom = 0.95f;        // initial zoom (95%)
-        private float zoomSpeed = 0.0003f; // per tick
-        private float driftX = 0.2f;       // pixels per tick
+        private float zoom = 0.95f;
+        private float zoomSpeed = 0.0003f;
+        private float driftX = 0.2f;
         private float driftY = 0.15f;
         private float offsetX = 0;
         private float offsetY = 0;
 
         private Timer timer;
+        private Point? mouseStart = null;
 
         public ScreensaverForm()
         {
@@ -74,10 +75,23 @@ namespace screenSavingCreator
             this.WindowState = FormWindowState.Maximized;
             this.TopMost = true;
 
-            // Exit events
             this.KeyDown += (s, e) => Close();
-            this.MouseMove += (s, e) => Close();
             this.MouseClick += (s, e) => Close();
+            this.MouseMove += OnMouseMove;
+        }
+
+        private void OnMouseMove(object s, MouseEventArgs e)
+        {
+            if (!mouseStart.HasValue)
+            {
+                mouseStart = e.Location;
+                return;
+            }
+
+            var dx = Math.Abs(e.X - mouseStart.Value.X);
+            var dy = Math.Abs(e.Y - mouseStart.Value.Y);
+            if (dx > 5 || dy > 5)
+                Close();
         }
 
         private void SetupTimer()
