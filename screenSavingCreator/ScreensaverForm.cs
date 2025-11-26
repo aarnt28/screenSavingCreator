@@ -23,6 +23,7 @@ namespace screenSavingCreator
             LoadImage();
             SetupForm();
             SetupTimer();
+            EnableDoubleBuffering();
         }
 
         public ScreensaverForm(IntPtr previewHandle)
@@ -43,6 +44,7 @@ namespace screenSavingCreator
             this.Size = new Size(parentRect.Width, parentRect.Height);
 
             SetupPreviewTimer();
+            EnableDoubleBuffering();
 
         }
 
@@ -53,13 +55,16 @@ namespace screenSavingCreator
         {
             // Load embedded resource image
             var assembly = Assembly.GetExecutingAssembly();
-
-            var names = assembly.GetManifestResourceNames();
-            MessageBox.Show(string.Join("\n", names));
-
             img = Image.FromStream(
                 assembly.GetManifestResourceStream("screenSavingCreator.background.jpg")
             );
+        }
+
+        private void EnableDoubleBuffering()
+        {
+            SetStyle(ControlStyles.AllPaintingInWmPaint | ControlStyles.UserPaint | ControlStyles.OptimizedDoubleBuffer, true);
+            UpdateStyles();
+            DoubleBuffered = true;
         }
 
         private void SetupForm()
@@ -114,9 +119,8 @@ namespace screenSavingCreator
 
         protected override void OnPaint(PaintEventArgs e)
         {
-            base.OnPaint(e);
-
             var g = e.Graphics;
+            g.Clear(Color.Black);
             g.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.HighQualityBicubic;
 
             float screenW = this.Width;
@@ -132,6 +136,11 @@ namespace screenSavingCreator
             float y = (screenH - drawH) / 2 + offsetY;
 
             g.DrawImage(img, x, y, drawW, drawH);
+        }
+
+        protected override void OnPaintBackground(PaintEventArgs pevent)
+        {
+            // Background is drawn manually in OnPaint to avoid flicker
         }
     }
 }
